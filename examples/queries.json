@@ -1,0 +1,12 @@
+[
+  {
+    "query": "vector search",
+    "ranked": ["A", "B", "C"],
+    "relevant": ["A", "C", "D"]
+  },
+  {
+    "query": "inverted index",
+    "ranked": ["X", "Y"],
+    "relevant": ["X"]
+  }
+]
