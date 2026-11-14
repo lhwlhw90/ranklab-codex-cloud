@@ -44,17 +44,32 @@ def precision_at_k(query: Query, k: int) -> float:
     return hits / k
 
 
+def recall_at_k(query: Query, k: int) -> float:
+    """Divide relevant hits in the first k positions by all relevant documents."""
+    if k < 1:
+        raise ValueError("k must be positive")
+    if not query.relevant:
+        return 0.0
+    hits = sum(doc_id in query.relevant for doc_id in query.ranked[:k])
+    return hits / len(query.relevant)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("dataset", type=Path, help="JSON file with query, ranked, relevant fields")
     parser.add_argument("--k", type=int, default=2, help="ranking cutoff (default: 2)")
+    parser.add_argument(
+        "--metric", choices=("precision", "recall"), default="precision",
+        help="retrieval metric (default: precision)",
+    )
     args = parser.parse_args()
+    metric = precision_at_k if args.metric == "precision" else recall_at_k
     try:
         queries = load_queries(args.dataset)
-        score = mean(precision_at_k(query, args.k) for query in queries)
+        score = mean(metric(query, args.k) for query in queries)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
-    print(f"precision@{args.k} = {score:.4f}")
+    print(f"{args.metric}@{args.k} = {score:.4f}")
 
 
 if __name__ == "__main__":
